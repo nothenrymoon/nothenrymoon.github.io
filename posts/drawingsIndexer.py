@@ -78,7 +78,8 @@ for category in drawings_path.iterdir():
         })
 
     category_data.sort(
-        key=lambda item: parse_date(item["file"])
+        key=lambda item: parse_date(item["file"]),
+        reverse=True
     )
 
     manifest[category.name] = category_data
