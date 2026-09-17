@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from datetime import datetime
 
 posts_path = Path(__file__).resolve().parent
 drawings_path = posts_path / "drawings"
@@ -19,6 +20,15 @@ image_extensions = {
 }
 
 manifest = {}
+
+def parse_date(filename):
+    date = filename.split("@", 1)[1]
+    date = date.rsplit(".", 1)[0]
+
+    return datetime.strptime(
+        date,
+        "%d-%b-%Y"
+    )
 
 for category in drawings_path.iterdir():
 
@@ -68,7 +78,7 @@ for category in drawings_path.iterdir():
         })
 
     category_data.sort(
-        key=lambda item: item["file"].lower()
+        key=lambda item: parse_date(item["file"])
     )
 
     manifest[category.name] = category_data
