@@ -4,6 +4,7 @@ from datetime import datetime
 
 posts_path = Path(__file__).resolve().parent
 
+# main stuff
 drawings_path = posts_path / "drawings"
 books_path = posts_path / "books"
 comics_path = posts_path / "comics"
@@ -12,6 +13,12 @@ drawings_output = posts_path / "drawings.json"
 books_output = posts_path / "books.json"
 comics_output = posts_path / "comics.json"
 
+# random stuff
+videoclips_path = posts_path / "videoclips"
+
+videoclips_output = posts_path / "videoclips.json"
+
+# extensions
 image_extensions = {
     ".png",
     ".jpg",
@@ -19,6 +26,10 @@ image_extensions = {
     ".gif",
     ".webp",
     ".avif"
+}
+video_extensions = {
+    ".webm",
+    ".mp4"
 }
 
 # ====================
@@ -175,9 +186,78 @@ with comics_output.open("w", encoding="utf-8") as file:
         ensure_ascii=False
     )
     file.write("\n")
+    
+# ====================
+# VIDEO CLIPS
+# ====================
 
+videoclips_manifest = {}
+
+for folder in videoclips_path.iterdir():
+
+    if not folder.is_dir():
+        continue
+
+    files = [
+        file
+        for file in folder.iterdir()
+        if file.is_file()
+        and file.suffix.lower() in video_extensions
+    ]
+
+    thumbnail_path = folder / "thumbnail"
+
+    thumbnails = []
+
+    if thumbnail_path.is_dir():
+        thumbnails = [
+            file
+            for file in thumbnail_path.iterdir()
+            if file.is_file()
+            and file.suffix.lower() in image_extensions
+        ]
+
+    category_data = []
+
+    for file in files:
+        
+        filename = file.stem
+        
+        parts = filename.split("@", 1)
+
+        name = parts[0]
+
+        thumbnail = None
+
+        for thumb in thumbnails:
+            if thumb.stem == name:
+                thumbnail = thumb.name
+                break
+
+        category_data.append({
+            "file": file.name,
+            "thumbnail": thumbnail
+        })
+
+    category_data.sort(
+        key=lambda item: item["file"].lower()
+    )
+
+    videoclips_manifest[folder.name] = category_data
+
+videoclips_manifest = dict(sorted(videoclips_manifest.items()))
+
+with videoclips_output.open("w", encoding="utf-8") as file:
+    json.dump(
+        videoclips_manifest,
+        file,
+        indent=2,
+        ensure_ascii=False
+    )
+    file.write("\n")
 
 print("Successfully generated:")
 print(drawings_output)
 print(books_output)
 print(comics_output)
+print(videoclips_output)
