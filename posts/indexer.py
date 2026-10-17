@@ -32,9 +32,9 @@ video_extensions = {
     ".mp4"
 }
 
-# ====================
+# ================================================================================ #
 # DRAWINGS
-# ====================
+# ================================================================================ #
 
 def parse_date(filename):
     date = filename.split("@", 1)[1]
@@ -114,9 +114,9 @@ with drawings_output.open("w", encoding="utf-8") as file:
     file.write("\n")
 
 
-# ====================
+# ================================================================================ #
 # BOOKS
-# ====================
+# ================================================================================ #
 
 books_manifest = {}
 
@@ -151,9 +151,9 @@ with books_output.open("w", encoding="utf-8") as file:
     file.write("\n")
 
 
-# ====================
+# ================================================================================ #
 # COMICS
-# ====================
+# ================================================================================ #
 
 comics_manifest = {}
 
@@ -187,9 +187,9 @@ with comics_output.open("w", encoding="utf-8") as file:
     )
     file.write("\n")
     
-# ====================
+# ================================================================================ #
 # VIDEO CLIPS
-# ====================
+# ================================================================================ #
 
 videoclips_manifest = {}
 
@@ -202,7 +202,7 @@ for folder in videoclips_path.iterdir():
         file
         for file in folder.iterdir()
         if file.is_file()
-        and file.suffix.lower() in video_extensions
+        and file.suffix.lower() in video_extensions |  {".txt"}
     ]
 
     thumbnail_path = folder / "thumbnail"
@@ -220,24 +220,37 @@ for folder in videoclips_path.iterdir():
     category_data = []
 
     for file in files:
-        
+
         filename = file.stem
-        
+
         parts = filename.split("@", 1)
 
         name = parts[0]
 
         thumbnail = None
+        external = False
+
+        if file.suffix.lower() == ".txt":
+            video_url = file.read_text(encoding="utf-8").strip()
+            external = True
+        else:
+            video_url = None
 
         for thumb in thumbnails:
             if thumb.stem == name:
                 thumbnail = thumb.name
                 break
 
-        category_data.append({
+        category_entry = {
             "file": file.name,
             "thumbnail": thumbnail
-        })
+        }
+
+        if external:
+            category_entry["url"] = video_url
+            category_entry["external"] = True
+
+        category_data.append(category_entry)
 
     category_data.sort(
         key=lambda item: item["file"].lower()
@@ -255,8 +268,12 @@ with videoclips_output.open("w", encoding="utf-8") as file:
         ensure_ascii=False
     )
     file.write("\n")
+    
+# ================================================================================ #
+# END
+# ================================================================================ #
 
-print("Successfully generated:")
+print("End")
 print(drawings_output)
 print(books_output)
 print(comics_output)
